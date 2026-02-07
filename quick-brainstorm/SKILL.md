@@ -1,137 +1,91 @@
 ---
 name: quick-brainstorm
-description: Use when starting bug fixes, small features, or code improvements. Triggers deep questioning before implementation to ensure accurate output.
+description: >
+  Lightweight brainstorming for bug fixes, small features, or code improvements
+  that need clarification before implementation. Triggers deep questioning to
+  ensure accurate output. Use when user asks to fix a bug, add a small feature,
+  refactor code, or make targeted improvements — and the scope is small enough
+  that a full brainstorm session is unnecessary. Do NOT use for large-scale
+  architecture decisions or greenfield projects.
 ---
 
 # Quick Brainstorm
 
-## Overview
+**MANDATORY: Do NOT call any file-edit, file-create, or code-generation tools until Phase 1 Q&A self-check has passed or Fast Track criteria are met. Reading files for context is allowed. Violation = immediate stop and return to Q&A.**
 
-Lightweight brainstorming for bug fixes, small features, and code improvements. Ensures accurate output through deep questioning, then enters Plan Mode for execution.
+Lightweight brainstorming → deep Q&A → design confirmation → Plan Mode → execution.
 
-**Core principle:** No limit on questions. Goal is accurate output. Skip obvious questions, only ask deep ones.
+**Core principle:** Only ask deep, non-obvious questions. Goal is accurate output, not question count.
 
 ## Optional Parameters
 
-- `--doc` - Write design doc to `docs/plans/YYYY-MM-DD-<topic>.md`
-- `--worktree` - Create isolated branch for development
-- `--plan-file` - Write implementation plan to file
+- `--doc` — After design confirmation, write design doc to `docs/plans/YYYY-MM-DD-<topic>.md` using `create_file`.
+- `--worktree` — Before starting, create isolated branch via `git worktree add ../quick-brainstorm-<topic> -b quick-brainstorm/<topic>` and work there.
+- `--plan-file` — Write implementation plan to `docs/plans/YYYY-MM-DD-<topic>-plan.md` instead of only presenting in chat.
 
 ## Process
 
-```dot
-digraph quick_brainstorm {
-    rankdir=TB;
-    node [shape=box];
-
-    start [label="Receive task" shape=ellipse];
-    context [label="Understand context\n(files, code, commits)"];
-    question [label="Q&A phase\n(one question at a time)"];
-    complete [label="Requirements\ncomplete?" shape=diamond];
-    compare [label="Multiple\napproaches?" shape=diamond];
-    options [label="Compare options\n(2-3 options + recommendation)"];
-    design [label="Present design\n(200-300 words per section)"];
-    confirm [label="Design\nconfirmed?" shape=diamond];
-    plan [label="EnterPlanMode\nCreate implementation plan"];
-    done [label="Execute after approval" shape=ellipse];
-
-    start -> context;
-    context -> question;
-    question -> complete;
-    complete -> question [label="no"];
-    complete -> compare [label="yes"];
-    compare -> options [label="yes"];
-    compare -> design [label="no"];
-    options -> design;
-    design -> confirm;
-    confirm -> question [label="needs adjustment"];
-    confirm -> plan [label="yes"];
-    plan -> done;
-}
 ```
+Task → Understand context (read files/code/commits)
+     → Q&A (one question at a time, until self-check passes)
+     → Multiple approaches? → Compare options with recommendation
+     → Present design in sections, confirm each
+     → Enter Plan Mode: create implementation plan, wait for approval
+     → Execute after user approval
+```
+
+## Fast Track
+
+May skip Q&A **only if ALL three conditions are true:**
+1. The change is mechanical (single-line fix, typo, rename, or user gave exact code to write)
+2. Zero design decisions or trade-offs involved
+3. User's instruction leaves no room for interpretation
+
+If any condition fails → go to Phase 1. When in doubt, ask one question to verify.
 
 ## Phase 1: Q&A
 
-**Principles:**
-- One question at a time
-- Prefer multiple choice
-- Skip obvious questions
-- **Keep asking until complete** - don't stop after just 1-2 questions
-
-**Coverage (must consider each):**
-1. **Technical implementation** - Data structures, API design, edge cases
-2. **UI/UX** - Interaction flow, feedback states, error messages
-3. **Potential concerns** - Performance impact, compatibility, side effects
-4. **Trade-offs** - Pros/cons when multiple approaches exist
-5. **Requirement exploration** - Discover related needs, potential extensions
+**Rules:**
+- One question at a time, prefer multiple choice
+- Skip anything Claude can infer from code/context
+- Keep asking until self-check passes — not based on a minimum question count
 
 **Self-check before ending Q&A:**
 - [ ] Core functionality approach is clear
-- [ ] User interaction and feedback discussed
 - [ ] Edge cases and error handling covered
 - [ ] No missing related requirements
-- [ ] User explicitly says "ready to proceed" or similar
-
-**Warning:** Only 1-2 questions before moving on = insufficient Q&A. Keep asking.
+- [ ] User has confirmed or implicitly indicated discussion is sufficient (e.g., answered last question with no new concerns)
 
 ## Phase 2: Compare Options
 
-**Trigger:** 2+ reasonable implementation approaches exist
+**When:** 2+ reasonable approaches exist. **Skip when:** One clearly optimal solution.
 
-**Format:**
-```
-Option A: [brief description]
-  - Pros: ...
-  - Cons: ...
-
-Option B: [brief description]
-  - Pros: ...
-  - Cons: ...
-
-Recommend [X] because [reason]
-```
-
-**Skip when:** Only one clearly optimal solution
+Present each option with pros/cons and a recommendation with reasoning. Keep brief.
 
 ## Phase 3: Present Design
 
-**Approach:**
-- Present in sections, 200-300 words each
-- After each section: "Does this look right?"
-- Adjust based on feedback before continuing
+Present in sections, confirm each before continuing. Trim sections that don't apply.
 
-**Structure (trim as needed):**
-1. Change overview - What and why
-2. Technical approach - Implementation details, files involved
-3. Data/API changes - If any
-4. UI/interaction changes - If any
-5. Edge cases and error handling - Key cases
-6. Implementation steps - Brief execution order
+1. Change overview — What and why
+2. Technical approach — Implementation details, files involved
+3. Data/API/UI changes — If any
+4. Edge cases — Key cases only
+5. Implementation steps — Brief execution order
 
-## Phase 4: Enter Plan Mode
+## Phase 4: Plan Mode
 
-After design confirmation:
-1. Use `EnterPlanMode` to enter planning mode
-2. Create detailed implementation steps (files, expected changes)
-3. Execute after user approval
-4. Pause and ask if encountering uncovered scenarios
+After design confirmation, switch to planning-only mode (no code output yet):
 
-## Red Flags - STOP
+1. **Create implementation plan** — List each step: files to change, what to change, expected outcome. If the environment supports a built-in plan mode (e.g. `plan` command, Plan Mode toggle, or `writing-plans` skill), use that; otherwise present the plan as a structured list in chat.
+2. **Wait for explicit user approval** before writing any code.
+3. **During execution**, pause and ask if encountering scenarios not covered in the plan.
 
-- Writing code without asking any questions
+## Guardrails
+
+**STOP and return to the correct phase if any of these occur:**
+
+- Calling edit/create tools before Q&A self-check passed (unless Fast Track criteria met)
 - User says "no" but continuing with original approach
-- Skipping option comparison and picking one approach
 - Entering Plan Mode without design confirmation
 - Executing without Plan Mode approval
-
-**Any of these means: STOP. Return to the correct phase.**
-
-## Common Mistakes
-
-| Mistake | Correct Approach |
-|---------|------------------|
-| Start implementing directly | Ask questions first |
-| Ask obvious questions | Only ask deep questions |
-| Ask multiple questions at once | One question at a time |
-| Present entire design at once | Present in sections, confirm each |
-| Write code after design confirmation | Enter Plan Mode |
+- Judging a task as "obvious" without verifying all three Fast Track conditions
