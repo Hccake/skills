@@ -1,11 +1,9 @@
 ---
 name: quick-brainstorm
 description: >
-  Lightweight brainstorming for bug fixes, small features, or code improvements
-  that need clarification before implementation. Triggers deep questioning to
-  ensure accurate output. Use when user asks to fix a bug, add a small feature,
-  refactor code, or make targeted improvements — and the scope is small enough
-  that a full brainstorm session is unnecessary. Do NOT use for large-scale
+  Use when user asks to fix a bug, add a small feature, refactor code,
+  or make targeted improvements — and the scope is small enough that a
+  full brainstorm session is unnecessary. Do NOT use for large-scale
   architecture decisions or greenfield projects.
 ---
 
@@ -17,21 +15,35 @@ Lightweight brainstorming → deep Q&A → design confirmation → Plan Mode →
 
 **Core principle:** Only ask deep, non-obvious questions. Goal is accurate output, not question count.
 
-## Optional Parameters
-
-- `--doc` — After design confirmation, write design doc to `docs/plans/YYYY-MM-DD-<topic>.md` using `create_file`.
-- `--worktree` — Before starting, create isolated branch via `git worktree add ../quick-brainstorm-<topic> -b quick-brainstorm/<topic>` and work there.
-- `--plan-file` — Write implementation plan to `docs/plans/YYYY-MM-DD-<topic>-plan.md` instead of only presenting in chat.
-
 ## Process
 
-```
-Task → Understand context (read files/code/commits)
-     → Q&A (one question at a time, until self-check passes)
-     → Multiple approaches? → Compare options with recommendation
-     → Present design in sections, confirm each
-     → Enter Plan Mode: create implementation plan, wait for approval
-     → Execute after user approval
+```dot
+digraph quick_brainstorm {
+    "Understand context" [shape=box];
+    "Fast Track?" [shape=diamond];
+    "Scope Check" [shape=diamond];
+    "Q&A" [shape=box];
+    "Multiple approaches?" [shape=diamond];
+    "Compare options" [shape=box];
+    "Present design" [shape=box];
+    "User approves?" [shape=diamond];
+    "Plan Mode" [shape=box];
+    "Execute" [shape=box];
+
+    "Understand context" -> "Fast Track?";
+    "Fast Track?" -> "Plan Mode" [label="yes"];
+    "Fast Track?" -> "Scope Check" [label="no"];
+    "Scope Check" -> "Q&A" [label="in scope"];
+    "Scope Check" -> "Escalate to\nfull brainstorming" [label="too large"];
+    "Q&A" -> "Multiple approaches?";
+    "Multiple approaches?" -> "Compare options" [label="yes"];
+    "Multiple approaches?" -> "Present design" [label="no"];
+    "Compare options" -> "Present design";
+    "Present design" -> "User approves?";
+    "User approves?" -> "Present design" [label="revise"];
+    "User approves?" -> "Plan Mode" [label="yes"];
+    "Plan Mode" -> "Execute";
+}
 ```
 
 ## Fast Track
@@ -43,11 +55,16 @@ May skip Q&A **only if ALL three conditions are true:**
 
 If any condition fails → go to Phase 1. When in doubt, ask one question to verify.
 
+## Scope Check
+
+If during context reading or Q&A you discover the task involves multiple subsystems, architectural decisions, or greenfield design — **stop** and tell the user this task exceeds quick-brainstorm's scope. Suggest using a full brainstorming skill instead.
+
 ## Phase 1: Q&A
 
 **Rules:**
 - One question at a time, prefer multiple choice
 - Skip anything Claude can infer from code/context
+- Before proposing solutions, understand existing patterns in the codebase — follow them unless there's a clear reason not to
 - Keep asking until self-check passes — not based on a minimum question count
 
 **Self-check before ending Q&A:**
@@ -64,19 +81,21 @@ Present each option with pros/cons and a recommendation with reasoning. Keep bri
 
 ## Phase 3: Present Design
 
-Present in sections, confirm each before continuing. Trim sections that don't apply.
+Present the design scaled to the task. Include only sections that carry information — skip any that add nothing:
 
-1. Change overview — What and why
-2. Technical approach — Implementation details, files involved
-3. Data/API/UI changes — If any
-4. Edge cases — Key cases only
-5. Implementation steps — Brief execution order
+1. **What and why** — Change overview
+2. **Technical approach** — Implementation details, files involved
+3. **Affected interfaces** — API/data/UI changes (skip if none)
+4. **Key edge cases** — (skip if obvious or none)
+5. **Implementation steps** — Brief execution order
+
+Confirm each section before continuing.
 
 ## Phase 4: Plan Mode
 
 After design confirmation, switch to planning-only mode (no code output yet):
 
-1. **Create implementation plan** — List each step: files to change, what to change, expected outcome. If the environment supports a built-in plan mode (e.g. `plan` command, Plan Mode toggle, or `writing-plans` skill), use that; otherwise present the plan as a structured list in chat.
+1. **Create implementation plan** — List each step: files to change, what to change, expected outcome. If the environment supports a built-in plan mode, use it; otherwise present as a structured list in chat.
 2. **Wait for explicit user approval** before writing any code.
 3. **During execution**, pause and ask if encountering scenarios not covered in the plan.
 
