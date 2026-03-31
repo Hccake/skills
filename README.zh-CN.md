@@ -10,9 +10,16 @@
 
 | Skill | 描述 |
 |-------|------|
-| [quick-brainstorm](quick-brainstorm/SKILL.md) | 轻量级头脑风暴，用于 bug 修复、小功能和代码改进。在动手写代码前先进行针对性提问。 |
+| [quick-brainstorm](quick-brainstorm/SKILL.md) | 小任务实施前的针对性 Q&A——bug 修复、小功能、重构。确保动手前思路清晰。 |
+| [tech-writing](tech-writing/skill.md) | 规划、撰写和修订中文专业技术内容，强调证据支撑和教学结构。 |
 
 ## 快速开始
+
+### 方式一：Skill Deck（图形界面）
+
+使用 [Skill Deck](https://github.com/Hccake/skill-deck) 可视化管理 skill——一个用于浏览、安装和组织 AI 编程助手 skill 的桌面应用。
+
+### 方式二：CLI
 
 通过 [skills CLI](https://www.npmjs.com/package/skills) 安装：
 
@@ -23,8 +30,10 @@ npx skills add hccake/skills
 或安装指定的 skill：
 
 ```bash
-npx skills add hccake/skills --skill quick-brainstorm
+npx skills add hccake/skills
 ```
+
+### 使用
 
 然后在对话中使用：
 

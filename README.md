@@ -10,9 +10,16 @@ A collection of reusable skills for AI coding assistants. Each skill is a struct
 
 | Skill | Description |
 |-------|-------------|
-| [quick-brainstorm](quick-brainstorm/SKILL.md) | Lightweight brainstorming for bug fixes, small features, and code improvements. Asks targeted questions before jumping into implementation. |
+| [quick-brainstorm](quick-brainstorm/SKILL.md) | Targeted Q&A before small implementation tasks — bug fixes, small features, refactors. Ensures clarity before code. |
+| [tech-writing](tech-writing/skill.md) | Plan, draft, and revise Chinese-language professional technical content with evidence-backed claims and strong teaching structure. |
 
 ## Quick Start
+
+### Option A: Skill Deck (GUI)
+
+Install and manage skills visually with [Skill Deck](https://github.com/Hccake/skill-deck) — a desktop app for browsing, installing, and organizing AI coding assistant skills.
+
+### Option B: CLI
 
 Install via the [skills CLI](https://www.npmjs.com/package/skills):
 
@@ -23,8 +30,10 @@ npx skills add hccake/skills
 Or install a specific skill:
 
 ```bash
-npx skills add hccake/skills --skill quick-brainstorm
+npx skills add hccake/skills
 ```
+
+### Usage
 
 Then tell your AI assistant to use it:
 
