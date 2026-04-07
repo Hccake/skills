@@ -49,7 +49,15 @@ Run through these gates before claiming an article is complete. Each gate is a p
 ## Gate 6: Prose Quality
 
 - [ ] The prose reads like a professional technical book: precise, restrained, explanatory, evidence-led.
-- [ ] No AI-flavored patterns: empty transitions ("Let's now look at..."), padded summaries, formulaic symmetry, self-referential framing ("In this article, we explained..."), motivational filler ("This is a very important concept...").
+- [ ] No AI-flavored patterns. Check for all of the following:
+  - Empty transitions: "Let's now look at...", "接下来我们来看..."
+  - Padded summaries and motivational filler: "This is a very important concept..."
+  - Self-referential framing: "本篇建立了...", "本文将从...角度分析...", "In this article, we explained..."
+  - Content-preview sentences that restate the table of contents: "这条路径可以分为三个阶段：发送、存储、消费"
+  - Structure plan leakage: sentences that read like section job descriptions rather than direct content
+  - Series navigation disguised as content: "详见第 N 篇" blockquotes, "系列对应篇目" table columns, opening paragraphs that preview the next article
+  - Series meta-commentary: "贯穿本系列所有篇目", "是理解后续 N 篇的基础"
+  - Formulaic symmetry across articles: if this article is part of a series, check whether its section structures, table formats, or paragraph patterns are identical to a sibling article
 - [ ] No content-preview openings that restate the table of contents as prose.
 - [ ] Terminology is consistent throughout the article. The same concept uses the same term everywhere.
 - [ ] Quantifiers ("等", "etc.", "and so on"), negations ("除非", "unless"), and scope words ("所有", "仅") match the actual scope of the claim.
@@ -82,8 +90,8 @@ Run through these gates before claiming an article is complete. Each gate is a p
 ## How to Use
 
 1. Read through all gates sequentially after completing the draft.
-2. For each failing check, note the specific location and the fix needed.
-3. Apply fixes, then re-run the failing gate (not all gates) to confirm.
+2. **Output results explicitly**: list every gate with pass/fail status. For each failure, note the specific location in the article and the fix needed. Do not claim "all gates pass" without showing the per-gate results — silent review is not review.
+3. Apply fixes, then re-run only the failing gates and report again.
 4. Only mark the article as complete when all gates pass.
 
 An article that passes all gates may still need revision based on user feedback — these gates catch craft and evidence problems, not requirements misalignment.

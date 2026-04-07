@@ -58,19 +58,23 @@ digraph authoring {
 
 When the task is **refactoring an existing article**, adjust the workflow:
 
-1. **Diagnose first**: before building the content contract, read the existing article and identify its specific problems — structural disorder, insufficient depth, narrative gaps, missing concepts, evidence issues, or prose quality. Write a concise **Problem Diagnosis** listing each issue and its location.
-2. **Assess scope**: based on the diagnosis, decide whether the article needs a full rewrite (run all steps from scratch) or a targeted repair (update only the affected sections of the contract, claim map, and structure plan).
+1. **Diagnose first**: read the existing article and identify its specific problems — structural disorder, insufficient depth, narrative gaps, missing concepts, evidence issues, or prose quality. Write a concise **Problem Diagnosis** listing each issue and its location. **Present the diagnosis to the user and wait for confirmation before proceeding** — the user may disagree with the assessment, add issues you missed, or deprioritize issues you flagged.
+2. **Assess scope**: based on the confirmed diagnosis, decide whether the article needs a full rewrite (run all steps from scratch) or a targeted repair (update only the affected sections of the contract, claim map, and structure plan).
 3. **Preserve what works**: if sections of the existing article are structurally sound and evidence-backed, carry them forward rather than rewriting from zero. The claim map only needs to cover claims that are new, changed, or previously unsupported.
+
+**Presentation order for refactoring**: Problem Diagnosis (confirm) → Content Contract + Claim Map + Structure Plan (confirm) → Draft. Do not merge the diagnosis into the contract/structure plan as a single output — the user needs to validate the problem list before you design the solution.
 
 For full rewrites, run the complete 5-step workflow. For targeted repairs, you may skip unchanged portions of the contract and claim map, but still run the full review gates (Step 6) on the final result.
 
 ## Step 1: Define Content Contract
 
-Start by reading only the materials that materially constrain the article:
+### Information gathering discipline
 
-- The target article or draft, if this is a refactor
-- The primary technical sources: specification, source code, issue discussion, benchmarks, experiments, traces, or design notes
-- Nearby articles only when local terminology or style must stay aligned
+Read **only** the target article (if refactoring) before doing anything else. Do not autonomously explore the codebase, search for source files, scan directory structures, or read nearby articles. If you need additional information (e.g., a source code file, a related article for terminology alignment, project conventions), **ask the user first** — describe what you need and why. The user can provide the information directly, point you to the right file, or approve a specific exploration scope.
+
+This rule applies to files in the user's project. Reading this skill's own reference files (e.g., `chapter-archetypes.md`, `review-gates.md`, `chinese-typesetting.md`) is not autonomous exploration — those are part of the skill workflow and should be read as needed.
+
+This rule exists because autonomous exploration wastes large amounts of tokens on speculative reads that usually turn out to be unnecessary. The user knows their project better than any search can reveal.
 
 Before outlining, write a short **Content Contract** covering:
 
@@ -111,9 +115,10 @@ Produce a **Structure Plan** with these fields:
 - **Section sequence**: ordered list of sections
 - **Section job**: what each section contributes to reader understanding
 - **Intra-section narrative**: for each non-trivial section, sketch the internal progression (e.g., "problem → design idea → new problem → solution → implementation" or "phenomenon → cause → evidence"). Flat knowledge-point lists are a red flag — if a section has no internal arc, it is either too thin or needs restructuring.
+- **Deduplication map**: if two or more sections touch the same knowledge point (e.g., a mechanism detail, a threshold value, a design rationale), designate exactly one section as the authoritative location and mark the others as cross-reference only. Catching overlap at the structure stage prevents redundant prose that is harder to fix after drafting.
 - **Evidence placement**: where code, experiments, specs, and diagrams appear
 - **Asset plan**: which sections need a figure, table, trace, or runnable example
-- **Link plan**: proposed links only if they close a concrete comprehension gap; note the justification for each one
+- **Link plan**: default to zero links. A cross-reference is justified only if removing it would leave the reader unable to follow the current section's argument. "The reader might want to know more" or "this topic is covered in depth later" is not sufficient — the series reading order already handles that. For each proposed link, state the specific sentence the reader could not understand without it. Links in the article opening that preview the next article are almost never justified.
 
 Structure rules:
 
@@ -131,11 +136,19 @@ Present the **Content Contract**, **Claim Map**, **Structure Plan**, and any exp
 
 - Wait for user confirmation before entering Step 5, even for small edits or limited rewrites.
 - If the user adjusts the plan, update the plan first and only then begin drafting.
-- For refactoring tasks, also present the **Problem Diagnosis** so the user can confirm the identified issues match their expectations.
 
 ## Step 5: Draft
 
 Only after the user approves the plan, write the article from the contract, claim map, and structure plan.
+
+### Plan-to-Prose Firewall
+
+The content contract, claim map, and structure plan are internal working documents. They guide the draft but must not leak into the prose. Specifically:
+
+- **Non-goals stay internal.** The contract's "this article will not cover X" should not appear as disclaimers in the article. If the scope is clear from the content, the reader does not need to be told what is excluded.
+- **Section jobs stay internal.** "This section establishes the reader's mental model of X" is a planning note. The article should just establish the mental model — without announcing that it is doing so. Sentences like "这条路径可以分为三个阶段：发送、存储、消费" are structure plan leakage disguised as prose.
+- **Link plan entries are not automatic cross-references.** Re-evaluate each link at drafting time: does the reader need it to understand *this sentence*, or is it just navigation? Remove navigation links — especially "详见第 N 篇" blockquotes and "系列对应篇目" table columns that turn the article into a hub page.
+- **Series awareness stays internal.** "这四个目标贯穿本系列所有篇目" and "是理解后续 N 篇的基础" are meta-commentary about the series structure. The reader is reading *this article*, not the series roadmap.
 
 ### Concept Introduction
 
@@ -155,6 +168,7 @@ When the article includes source code analysis (common in mechanism and source-w
 - **Trim to the argument**: only show the code paths relevant to the current point. Mark omissions with comments (`// ... 省略 ...`). A 60-line method that makes one point should be shown as the 15 lines that make that point.
 - **Annotate decisions, not syntax**: inline comments should mark design choices and non-obvious logic. Do not narrate self-evident lines (`i++ // increment i`).
 - **Interleave code and prose**: for long source analysis, break the code into fragments. Between fragments, use prose to connect what the reader just saw to what comes next. A wall of code followed by a wall of explanation is harder to follow than an interleaved sequence.
+- **Unpack dense expressions**: when a single line of code chains multiple operations that the target reader may not understand individually (e.g., bit manipulation, nested method calls, ternary cascades), do not just attach a summary comment. Break the line apart: explain each sub-operation's purpose separately, then show how they compose. Use concrete numeric examples to make abstract bit-level operations tangible.
 - **Class structure before behavior**: when analyzing a class, show its key fields and their roles first, then walk through methods. The reader needs to know what state a method operates on before reading the method.
 
 ### General Drafting Defaults
@@ -170,13 +184,14 @@ When the article includes source code analysis (common in mechanism and source-w
 - Add a recap only when it materially helps synthesis, comparison, or retention.
 - End the article with a `References` section, or a clearly equivalent local-language heading, that lists the authoritative materials actually relied on, prioritizing books, official documentation, specifications, RFCs, papers, and other primary sources.
 - Keep the prose close to a professional technical book: precise, restrained, explanatory, and evidence-led.
-- Avoid AI-flavored writing patterns: empty transitions, padded summaries, formulaic symmetry, self-referential framing ("this article explains...", "in this article we will..."), content-preview lists that restate the table of contents, motivational filler, and generic "completeness" language.
+- Avoid AI-flavored writing patterns: empty transitions, padded summaries, formulaic symmetry, self-referential framing ("this article explains...", "in this article we will..."), content-preview lists that restate the table of contents, motivational filler, and generic "completeness" language. See the expanded checklist in review-gates.md Gate 6 for specific patterns to watch for.
+- **Cross-article variation**: when writing multiple articles in the same series, actively vary the internal structure of analogous sections. If two articles both have a "design goals" section, use different presentation forms (e.g., one uses bold-keyword paragraphs, the other uses a problem→solution narrative or a comparison table). If both have a "version history" section, vary the table columns and surrounding prose. Structural monotony across articles in a series is a strong signal of template-driven generation.
 - Prefer direct claims and concrete explanation over broad, polished-sounding but low-information prose.
 - Read [chinese-typesetting.md](references/chinese-typesetting.md) and apply its formatting rules.
 
 ## Step 6: Verify and Revise
 
-Run through every gate in [review-gates.md](references/review-gates.md) before claiming the article is complete. If any gate fails, revise and re-check that gate before finalizing.
+Run through every gate in [review-gates.md](references/review-gates.md) before claiming the article is complete. **Output the result of each gate explicitly** — list every gate with pass/fail status, and for each failure note the specific location and the fix needed. Do not silently "pass everything in your head"; the user must see the gate results to trust the review. After fixing failures, re-run only the affected gates and report again. Only mark the article as complete when all gates pass.
 
 ## Optional Local Integration
 
@@ -203,10 +218,14 @@ Only after the article is stable, optionally:
 | Covering too much because the material is interesting | Use non-goals to keep the article bounded |
 | Turning a short lead into a fake numbered preface, or inventing a "Section 0" | Keep brief orientation under the title; if the opening does real teaching work, promote it to Section 1 and renumber the rest |
 | Using the same opening strategy for every article in a series | Each article has a distinct teaching job — match the opening to that job, not to a default template. Check the misuse patterns in chapter-archetypes.md |
-| Same knowledge point explained in full more than once | Pick one authoritative location, cross-reference from the rest |
+| Same knowledge point explained in full in two or more sections | Designate one authoritative section in the structure plan (deduplication map); other sections cross-reference it |
 | Imprecise quantifiers or scope words that accidentally widen or narrow a claim | Audit "等/etc.", "除非/unless", "所有/仅" against the actual scope |
 | Preserving local style at the expense of clarity | Keep only the local conventions that do not harm comprehension |
 | New concept/term appears without motivation | Establish the need before naming the solution; the reader should know *why* before *what* |
 | Flat knowledge-point listing within a section | Each section needs an internal narrative arc, not just a sequence of facts |
 | Insufficient depth for the article's declared level | Check every core knowledge point against the depth level in the contract; source-code level requires actual source, not prose summaries |
 | Refactoring without diagnosing the existing article first | Write a Problem Diagnosis before rebuilding the contract and structure |
+| Autonomously exploring the codebase, directory trees, or related files before asking the user | Read only the target article first; ask the user for any additional information before searching |
+| Dense code line gets only a summary comment, reader still cannot follow | Break the expression into sub-operations, explain each one, then show how they compose with concrete examples |
+| Planning language leaks into prose: "本篇建立…", "详见第 N 篇", "这条路径分为三个阶段" | Apply the plan-to-prose firewall: non-goals, section jobs, link plan entries, and series awareness are internal — write the content directly instead of announcing what you are about to write |
+| Multiple articles in a series share identical section structures, table formats, or sentence patterns | Actively vary presentation forms across articles — same teaching job does not require same structure template |
